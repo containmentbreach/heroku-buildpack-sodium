@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+set -e
+
+BUILD_DIR=$1
+CACHE_DIR=$2
+
+mkdir -p "$CACHE_DIR"
+
+cd "$CACHE_DIR"
+
+SODIUM_NAME="libsodium-$(cat $BUILD_DIR/sodium_version)"
+SODIUM_TARBALL="https://download.libsodium.org/libsodium/releases/$SODIUM_NAME.tar.gz"
+
+echo "-----> Installing Sodium library"
+
+if [ ! -d "$SODIUM_NAME" ]; then
+	curl --silent --max-time 60 --location "$SODIUM_TARBALL" | tar -xz
+	cd "$SODIUM_NAME"
+	./configure --prefix="$BUILD_DIR/.heroku/vendor"
+	make && make check
+	make install
+else
+	cd "$SODIUM_NAME"
+	make install >/dev/null
+fi
